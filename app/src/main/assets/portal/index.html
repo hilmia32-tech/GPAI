@@ -1,0 +1,1529 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Portal Web GPAI TANJUNGSARI</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Fallback offline styling and custom enhancements */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .btn-jabatan.active {
+            background-color: #1e3a8a !important;
+            color: #ffffff !important;
+            border-color: #1e3a8a !important;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 font-sans text-slate-800 min-h-screen pb-24 select-none">
+
+    <!-- Header / Navbar -->
+    <header class="bg-blue-900 text-white p-4 shadow-lg flex justify-between items-center sticky top-0 z-40">
+        <div class="flex items-center space-x-2.5">
+            <span class="text-2xl">🌐</span>
+            <div>
+                <h1 class="font-bold text-base md:text-lg tracking-wide leading-tight">GPAI TANJUNGSARI</h1>
+                <p class="text-[10px] text-blue-200">Portal Iuran Resmi • LocalStorage Aktif</p>
+            </div>
+        </div>
+        <div id="headerRightAction" class="flex items-center space-x-2">
+            <button type="button" onclick="toggleAdminMode()" id="btnAdminToggle" class="text-xs bg-orange-500 text-white px-3.5 py-2 rounded-xl font-bold hover:bg-orange-600 transition shadow active:scale-95 cursor-pointer flex items-center space-x-1">
+                <span>🔐</span>
+                <span id="btnAdminToggleText">Login Admin</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Status Banner LocalStorage -->
+    <div class="bg-blue-950 text-blue-200 px-4 py-1.5 text-[11px] flex justify-between items-center border-b border-blue-800/50">
+        <div class="flex items-center space-x-1.5">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span class="font-medium">Data Tersimpan Otomatis di LocalStorage</span>
+        </div>
+        <span id="storageInfoBadge" class="text-[10px] bg-blue-900/80 px-2 py-0.5 rounded text-blue-300 font-mono">0 Anggota</span>
+    </div>
+
+    <!-- Halaman Pelanggan / Portal Utama -->
+    <main id="sectionPelanggan" class="max-w-md mx-auto p-4 mt-2 transition-all">
+        <div class="bg-white rounded-3xl shadow-md p-6 border border-slate-200">
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 bg-blue-100 text-blue-900 rounded-2xl mx-auto flex items-center justify-center text-3xl mb-3 shadow-inner">
+                    💳
+                </div>
+                <h2 class="text-xl font-extrabold text-blue-900 mb-1">Cek Tagihan Iuran</h2>
+                <p class="text-xs text-slate-500">Masukkan User ID Anda untuk melihat rincian tagihan bulanan</p>
+            </div>
+
+            <form onsubmit="cekTagihan(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1.5">User ID Anggota</label>
+                    <div class="relative">
+                        <input type="text" id="inputUserId" placeholder="Contoh: GPAI001" 
+                            class="w-full pl-4 pr-10 py-3 border border-slate-300 rounded-2xl focus:ring-2 focus:ring-blue-600 focus:border-blue-600 outline-none text-sm uppercase font-mono font-semibold bg-slate-50 focus:bg-white transition" required>
+                        <span class="absolute right-3.5 top-3.5 text-slate-400 text-sm">🔍</span>
+                    </div>
+                    <p class="text-[11px] text-slate-400 mt-1.5 flex items-center space-x-1">
+                        <span>💡</span>
+                        <span>Coba ketik <b>GPAI001</b>, <b>GPAI002</b>, atau <b>GPAI003</b></span>
+                    </p>
+                </div>
+                <button type="submit" class="w-full bg-blue-700 hover:bg-blue-800 text-white font-bold py-3.5 rounded-2xl transition text-sm shadow-md active:scale-[0.98] flex items-center justify-center space-x-2">
+                    <span>Periksa Tagihan</span>
+                    <span>➔</span>
+                </button>
+            </form>
+
+            <p id="pesanError" class="text-rose-600 text-xs text-center mt-4 font-semibold hidden bg-rose-50 p-3 rounded-xl border border-rose-200"></p>
+
+            <!-- Rincian Tagihan -->
+            <div id="wrapperTagihan" class="mt-6 border-t border-slate-100 pt-5 space-y-4 text-sm hidden">
+                <div class="flex justify-between items-center bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
+                    <span class="text-xs font-mono font-bold bg-blue-100 text-blue-800 px-3 py-1.5 rounded-xl" id="resUserIdBadge">USER ID: -</span>
+                    <span id="resStatusBadge" class="text-xs font-bold px-3 py-1.5 rounded-xl shadow-xs"></span>
+                </div>
+
+                <div class="space-y-2 bg-slate-50/60 p-4 rounded-2xl border border-slate-100">
+                    <div class="flex justify-between text-xs">
+                        <span class="text-slate-500">Nama Anggota</span>
+                        <span id="resNama" class="font-bold text-slate-800"></span>
+                    </div>
+                    <div class="flex justify-between text-xs">
+                        <span class="text-slate-500">Jabatan Iuran</span>
+                        <span id="resJabatan" class="font-semibold text-slate-700"></span>
+                    </div>
+                    <div class="flex justify-between text-xs">
+                        <span class="text-slate-500">Periode Tagihan</span>
+                        <span id="resPeriode" class="font-semibold text-blue-700"></span>
+                    </div>
+                </div>
+
+                <div class="bg-blue-50 border border-blue-200 rounded-2xl p-4 text-center">
+                    <p class="text-xs text-blue-700 font-medium">Total Tagihan Yang Harus Dibayar</p>
+                    <p id="resNominal" class="font-extrabold text-blue-900 text-2xl mt-1 tracking-tight"></p>
+                </div>
+
+                <!-- Box Status Menunggu Verifikasi -->
+                <div id="boxKonfirmasiDiterima" class="bg-amber-50 border border-amber-200 rounded-2xl p-4 text-amber-900 space-y-1.5 hidden shadow-xs">
+                    <div class="flex items-center space-x-2 font-bold text-xs">
+                        <span class="text-base">⏳</span>
+                        <span>Konfirmasi Diterima (Menunggu Verifikasi)</span>
+                    </div>
+                    <p class="text-[11px] text-amber-700 leading-relaxed">
+                        Pembayaran telah diajukan dan sedang menunggu verifikasi admin GPAI TANJUNGSARI.
+                    </p>
+                </div>
+
+                <!-- Instruksi Pembayaran (Muncul jika Belum Lunas) -->
+                <div id="instruksiBayar" class="bg-slate-50 p-4 rounded-2xl border border-slate-200 text-xs text-slate-700 space-y-3.5">
+                    <div class="flex items-center space-x-1.5 font-bold text-blue-900 text-sm">
+                        <span>💳</span>
+                        <span>Instruksi Transfer Pembayaran</span>
+                    </div>
+                    <p class="text-slate-500 text-[11px]">Silakan transfer pembayaran iuran ke rekening kas berikut:</p>
+                    
+                    <div class="bg-white p-3.5 rounded-xl border border-slate-200 flex justify-between items-center shadow-xs">
+                        <div>
+                            <p class="font-extrabold text-slate-800 text-xs">BANK BJB</p>
+                            <p class="text-[11px] text-slate-500">A.n AI KARTINI</p>
+                            <p class="font-mono font-bold text-blue-700 text-base mt-0.5" id="rekeningText">0095342744100</p>
+                        </div>
+                        <button type="button" onclick="salinRekening(this)" class="bg-blue-50 hover:bg-blue-100 text-blue-700 px-3.5 py-2 rounded-xl text-xs font-bold transition border border-blue-200 active:scale-95 cursor-pointer">
+                            Salin No. Rek
+                        </button>
+                    </div>
+
+                    <div class="pt-1">
+                        <label class="block text-[10px] text-slate-400 mb-1 font-semibold">Keterangan / Catatan Transfer (Opsional)</label>
+                        <input type="text" id="keteranganBayarInput" placeholder="Contoh: Transfer via BJB Digi / bukti sudah dikirim" class="w-full p-2.5 border rounded-xl text-xs outline-none focus:ring-2 focus:ring-blue-600 bg-white">
+                    </div>
+
+                    <button type="button" onclick="konfirmasiBayar()" class="w-full bg-orange-500 text-white font-bold py-3 rounded-2xl hover:bg-orange-600 transition shadow-md active:scale-95 cursor-pointer text-xs flex items-center justify-center space-x-2">
+                        <span>✓</span>
+                        <span>Saya Sudah Bayar (Konfirmasi)</span>
+                    </button>
+                </div>
+
+                <!-- Tombol Struk (Muncul jika Lunas) -->
+                <div id="wrapperTombolStruk" class="pt-2 hidden">
+                    <button type="button" onclick="bukaModalStrukDariAktif()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 rounded-2xl text-xs transition shadow-md active:scale-95 flex items-center justify-center space-x-2 cursor-pointer">
+                        <span>📄</span>
+                        <span>Lihat Struk Resmi Pembayaran Lunas</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tombol Bantuan Floating WhatsApp -->
+        <a href="https://wa.me/6289504514402?text=Halo%20Admin%20GPAI%20Tanjungsari,%20saya%20ingin%20bertanya%20mengenai%20tagihan%20iuran."
+           target="_blank" rel="noreferrer"
+           class="fixed bottom-6 right-6 bg-emerald-500 text-white p-4 rounded-full shadow-2xl hover:bg-emerald-600 transition flex items-center justify-center z-40 text-2xl active:scale-90" title="Hubungi Admin via WhatsApp">
+            💬
+        </a>
+    </main>
+
+    <!-- Halaman Login Admin -->
+    <main id="sectionLoginAdmin" class="max-w-md mx-auto p-4 mt-6 hidden transition-all">
+        <div class="bg-white rounded-3xl shadow-md p-6 border border-slate-200">
+            <div class="text-center mb-6">
+                <div class="w-14 h-14 bg-orange-100 text-orange-600 rounded-2xl mx-auto flex items-center justify-center text-2xl mb-2.5">
+                    🔐
+                </div>
+                <h2 class="text-xl font-bold text-blue-900 mb-1">Login Admin GPAI</h2>
+                <p class="text-xs text-slate-500">Masuk untuk mengelola tagihan anggota & verifikasi</p>
+            </div>
+
+            <form onsubmit="prosesLoginAdmin(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Username Admin</label>
+                    <input type="text" id="adminUser" value="admin" class="w-full px-4 py-3 border border-slate-300 rounded-2xl text-sm outline-none focus:ring-2 focus:ring-blue-600 bg-slate-50 focus:bg-white" required>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 mb-1">Password Admin</label>
+                    <input type="password" id="adminPass" value="password123" class="w-full px-4 py-3 border border-slate-300 rounded-2xl text-sm outline-none focus:ring-2 focus:ring-blue-600 bg-slate-50 focus:bg-white" required>
+                    <p class="text-[11px] text-slate-400 mt-1">Default: <b>admin</b> / <b>password123</b></p>
+                </div>
+                <button type="submit" class="w-full bg-blue-900 hover:bg-blue-800 text-white font-bold py-3.5 rounded-2xl transition shadow-md active:scale-95 text-xs">
+                    Masuk ke Dashboard Admin
+                </button>
+                <button type="button" onclick="toggleAdminMode()" class="w-full bg-slate-100 text-slate-600 font-semibold py-3 rounded-2xl text-xs hover:bg-slate-200 transition">
+                    Kembali ke Halaman Cek Tagihan
+                </button>
+            </form>
+        </div>
+    </main>
+
+    <!-- Halaman Dashboard Admin -->
+    <main id="sectionDashboardAdmin" class="max-w-4xl mx-auto p-4 mt-2 space-y-6 hidden transition-all">
+        <!-- Navigation Bar Admin Tabs -->
+        <div class="bg-white p-2 rounded-2xl shadow-sm border border-slate-200 flex overflow-x-auto space-x-1 text-xs font-bold scrollbar-none">
+            <button type="button" id="tabBtnStatistik" onclick="switchAdminTab('statistik')" class="px-4 py-2.5 rounded-xl transition cursor-pointer whitespace-nowrap bg-blue-900 text-white">
+                📊 Statistik
+            </button>
+            <button type="button" id="tabBtnPelanggan" onclick="switchAdminTab('pelanggan')" class="px-4 py-2.5 rounded-xl transition cursor-pointer whitespace-nowrap text-slate-600 hover:bg-slate-100">
+                👥 Kelola Anggota
+            </button>
+            <button type="button" id="tabBtnVerifikasi" onclick="switchAdminTab('verifikasi')" class="px-4 py-2.5 rounded-xl transition cursor-pointer whitespace-nowrap text-slate-600 hover:bg-slate-100 flex items-center space-x-1">
+                <span>✔️ Verifikasi</span>
+                <span id="badgePendingCount" class="bg-amber-500 text-white text-[10px] px-1.5 py-0.2 rounded-full hidden">0</span>
+            </button>
+            <button type="button" id="tabBtnHistori" onclick="switchAdminTab('histori')" class="px-4 py-2.5 rounded-xl transition cursor-pointer whitespace-nowrap text-slate-600 hover:bg-slate-100">
+                📅 Histori Jan-Des
+            </button>
+            <button type="button" id="tabBtnPengeluaran" onclick="switchAdminTab('pengeluaran')" class="px-4 py-2.5 rounded-xl transition cursor-pointer whitespace-nowrap text-slate-600 hover:bg-slate-100">
+                📋 Pengeluaran
+            </button>
+            <button type="button" id="tabBtnPengaturan" onclick="switchAdminTab('pengaturan')" class="px-4 py-2.5 rounded-xl transition cursor-pointer whitespace-nowrap text-slate-600 hover:bg-slate-100">
+                ⚙️ Pengaturan & Data
+            </button>
+        </div>
+
+        <!-- Tab 1: Statistik -->
+        <div id="adminTabStatistik" class="space-y-4">
+            <div class="bg-gradient-to-r from-blue-900 to-indigo-900 text-white p-6 rounded-3xl shadow-md space-y-3">
+                <div class="flex justify-between items-center">
+                    <p class="text-xs font-bold text-blue-200 tracking-wider uppercase">Total Pendapatan Terverifikasi</p>
+                    <span class="text-xs bg-emerald-500/30 text-emerald-300 font-bold px-2.5 py-1 rounded-lg">Lunas</span>
+                </div>
+                <p id="statPendapatan" class="text-3xl md:text-4xl font-extrabold tracking-tight">Rp 0</p>
+                <p id="statInfoRasio" class="text-xs text-blue-100 font-medium pt-2 border-t border-blue-800/80">0 dari 0 anggota sudah lunas (0%)</p>
+            </div>
+
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div onclick="switchAdminTab('pelanggan')" class="bg-white p-4 rounded-2xl shadow-xs border border-slate-200 cursor-pointer hover:border-blue-500 transition">
+                    <p class="text-[11px] text-slate-400 font-bold uppercase">Total Anggota</p>
+                    <p id="statTotal" class="text-2xl font-black text-slate-800 mt-1">0</p>
+                    <span class="text-[10px] text-blue-600 font-bold mt-1 inline-block">Lihat Semua ➔</span>
+                </div>
+                <div class="bg-white p-4 rounded-2xl shadow-xs border border-slate-200">
+                    <p class="text-[11px] text-slate-400 font-bold uppercase">Lunas</p>
+                    <p id="statLunas" class="text-2xl font-black text-emerald-600 mt-1">0</p>
+                    <span class="text-[10px] text-emerald-600 font-bold mt-1 inline-block">Selesai</span>
+                </div>
+                <div class="bg-white p-4 rounded-2xl shadow-xs border border-slate-200">
+                    <p class="text-[11px] text-slate-400 font-bold uppercase">Belum Lunas</p>
+                    <p id="statBelumLunas" class="text-2xl font-black text-rose-600 mt-1">0</p>
+                    <span class="text-[10px] text-rose-600 font-bold mt-1 inline-block">Tertunda</span>
+                </div>
+                <div onclick="switchAdminTab('verifikasi')" class="bg-white p-4 rounded-2xl shadow-xs border border-slate-200 cursor-pointer hover:border-amber-500 transition">
+                    <p class="text-[11px] text-slate-400 font-bold uppercase">Menunggu</p>
+                    <p id="statMenunggu" class="text-2xl font-black text-amber-600 mt-1">0</p>
+                    <span class="text-[10px] text-amber-600 font-bold mt-1 inline-block">Perlu Konfirmasi ➔</span>
+                </div>
+            </div>
+
+            <button type="button" onclick="switchAdminTab('histori')" class="w-full bg-white hover:bg-slate-50 text-slate-700 font-bold p-4 rounded-2xl border border-slate-200 shadow-xs transition flex items-center justify-center space-x-2 cursor-pointer text-xs">
+                <span>📅</span>
+                <span>Buka Matriks Histori Pembayaran 12 Bulan (Jan - Des)</span>
+            </button>
+        </div>
+
+        <!-- Tab 2: Kelola Anggota -->
+        <div id="adminTabPelanggan" class="space-y-4 hidden">
+            <!-- Tombol Tambah Anggota (Akordion) -->
+            <div onclick="toggleFormTambah()" class="bg-white p-4 rounded-2xl shadow-xs border border-slate-200 flex justify-between items-center cursor-pointer hover:border-blue-500 transition">
+                <div class="flex items-center space-x-2.5 text-xs font-bold text-blue-900">
+                    <span class="bg-blue-100 text-blue-700 w-7 h-7 rounded-full flex items-center justify-center text-sm font-extrabold">+</span>
+                    <span id="teksHeaderTambah">Tambah Anggota / Pelanggan Baru</span>
+                </div>
+                <span id="ikonPanahForm" class="text-slate-400 font-bold text-xs">▼ Buka Form</span>
+            </div>
+
+            <!-- Form Tambah / Edit Anggota -->
+            <div id="wrapperFormTambah" class="bg-white rounded-3xl shadow-md border border-slate-200 p-6 hidden space-y-4 transition-all">
+                <h3 id="formTitlePelanggan" class="font-extrabold text-blue-900 text-sm">➕ Tambah Anggota Baru</h3>
+                
+                <form onsubmit="simpanPelanggan(event)" class="space-y-3.5 text-xs">
+                    <div>
+                        <label class="block text-slate-600 font-semibold mb-1">User ID Anggota</label>
+                        <input type="text" id="addId" placeholder="Contoh: GPAI005" class="w-full px-4 py-3 border border-slate-300 rounded-2xl outline-none uppercase font-mono font-bold bg-slate-50 focus:bg-white" required>
+                    </div>
+                    <div>
+                        <label class="block text-slate-600 font-semibold mb-1">Nama Lengkap</label>
+                        <input type="text" id="addNama" placeholder="Nama Guru / Anggota" class="w-full px-4 py-3 border border-slate-300 rounded-2xl outline-none bg-slate-50 focus:bg-white" required>
+                    </div>
+                    <div>
+                        <label class="block text-slate-600 font-semibold mb-1">Nomor WhatsApp</label>
+                        <input type="text" id="addWa" placeholder="08xxxxxxxxxx" class="w-full px-4 py-3 border border-slate-300 rounded-2xl outline-none bg-slate-50 focus:bg-white" required>
+                    </div>
+
+                    <div>
+                        <label class="block text-slate-600 font-semibold mb-1.5">Pilih Kategori Jabatan Iuran:</label>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button type="button" onclick="pilihJabatan('Sertifikasi', 100000, this)" id="btnJabSertifikasi" class="btn-jabatan active px-3.5 py-3 rounded-2xl border font-bold text-left transition cursor-pointer bg-blue-900 text-white border-blue-900 shadow-xs">
+                                <div class="text-xs">Sertifikasi</div>
+                                <div class="text-[10px] text-blue-200 font-normal mt-0.5">Rp 100.000 / bln</div>
+                            </button>
+                            <button type="button" onclick="pilihJabatan('PNS', 50000, this)" id="btnJabPns" class="btn-jabatan px-3.5 py-3 rounded-2xl border font-bold text-left transition cursor-pointer bg-slate-50 text-slate-700 border-slate-300">
+                                <div class="text-xs">PNS</div>
+                                <div class="text-[10px] text-slate-500 font-normal mt-0.5">Rp 50.000 / bln</div>
+                            </button>
+                        </div>
+                        <input type="hidden" id="addJabatan" value="Sertifikasi">
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+                        <div>
+                            <label class="block text-[10px] text-slate-500 mb-1 font-semibold uppercase">Nominal Iuran (Rp)</label>
+                            <input type="number" id="addNominal" value="100000" class="w-full px-4 py-3 border border-slate-300 rounded-2xl outline-none bg-slate-50 font-extrabold text-slate-800" required>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] text-slate-500 mb-1 font-semibold uppercase">Periode Tagihan</label>
+                            <input type="text" id="addPeriode" value="Oktober" class="w-full px-4 py-3 border border-slate-300 rounded-2xl outline-none bg-slate-50 font-bold text-slate-800" required>
+                        </div>
+                    </div>
+
+                    <div class="pt-1">
+                        <label class="block text-[10px] text-slate-500 mb-1 font-semibold uppercase">Status Pembayaran</label>
+                        <select id="addStatus" class="w-full px-4 py-3 border border-slate-300 rounded-2xl outline-none bg-slate-50 font-bold text-slate-800">
+                            <option value="Belum Lunas">Belum Lunas</option>
+                            <option value="Menunggu Verifikasi">Menunggu Verifikasi</option>
+                            <option value="Lunas">Lunas</option>
+                        </select>
+                    </div>
+
+                    <div class="flex space-x-2 pt-3">
+                        <button type="submit" id="btnSimpanPelanggan" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 rounded-2xl transition shadow-md cursor-pointer text-center active:scale-95 text-xs">
+                            ✓ Simpan ke LocalStorage
+                        </button>
+                        <button type="button" id="btnBatalEdit" onclick="batalEditPelanggan()" class="hidden bg-slate-200 text-slate-700 px-5 py-3.5 rounded-2xl font-bold hover:bg-slate-300 transition cursor-pointer text-xs">
+                            Batal
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Pencarian & Filter Status -->
+            <div class="space-y-2">
+                <input type="text" id="inputPencarian" oninput="renderDaftarPelanggan()" placeholder="Cari nama, User ID, atau nomor WhatsApp..." class="w-full px-4 py-3 border border-slate-300 rounded-2xl text-xs outline-none focus:ring-2 focus:ring-blue-600 bg-white">
+                <div class="flex overflow-x-auto space-x-1.5 py-1 text-[11px] font-bold scrollbar-none">
+                    <button type="button" onclick="setFilterStatus('Semua')" class="filter-btn px-3 py-1.5 rounded-xl border transition bg-blue-900 text-white border-blue-900 shadow-xs" data-status="Semua">Semua</button>
+                    <button type="button" onclick="setFilterStatus('Belum Lunas')" class="filter-btn px-3 py-1.5 rounded-xl border transition bg-white text-slate-600 border-slate-200" data-status="Belum Lunas">Belum Lunas</button>
+                    <button type="button" onclick="setFilterStatus('Menunggu Verifikasi')" class="filter-btn px-3 py-1.5 rounded-xl border transition bg-white text-slate-600 border-slate-200" data-status="Menunggu Verifikasi">Menunggu Verifikasi</button>
+                    <button type="button" onclick="setFilterStatus('Lunas')" class="filter-btn px-3 py-1.5 rounded-xl border transition bg-white text-slate-600 border-slate-200" data-status="Lunas">Lunas</button>
+                </div>
+            </div>
+
+            <!-- Daftar Kartu Pelanggan -->
+            <div id="listKartuPelanggan" class="space-y-3"></div>
+        </div>
+
+        <!-- Tab 3: Verifikasi Pembayaran -->
+        <div id="adminTabVerifikasi" class="space-y-4 hidden">
+            <div class="bg-white rounded-3xl shadow-sm border border-slate-200 p-5 overflow-x-auto">
+                <div class="flex justify-between items-center mb-4">
+                    <div>
+                        <h3 class="font-extrabold text-blue-900 text-sm">✔️ Konfirmasi Pembayaran Menunggu Verifikasi</h3>
+                        <p class="text-[11px] text-slate-500">Anggota yang telah klik 'Saya Sudah Bayar'</p>
+                    </div>
+                    <span id="countVerifikasiPill" class="text-xs bg-amber-100 text-amber-800 font-bold px-3 py-1 rounded-full">0 Menunggu</span>
+                </div>
+
+                <table class="w-full text-left text-xs">
+                    <thead>
+                        <tr class="border-b border-slate-200 text-slate-500 pb-2">
+                            <th class="pb-2.5">User ID</th>
+                            <th class="pb-2.5">Nama Anggota</th>
+                            <th class="pb-2.5">Periode</th>
+                            <th class="pb-2.5">Nominal</th>
+                            <th class="pb-2.5 text-center">Tindakan</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabelVerifikasiBody" class="divide-y divide-slate-100"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Tab 4: Histori Jan - Des -->
+        <div id="adminTabHistori" class="space-y-4 hidden">
+            <div class="bg-white rounded-3xl shadow-sm border border-slate-200 p-5 overflow-x-auto">
+                <div class="flex justify-between items-center mb-3">
+                    <div>
+                        <h3 class="font-extrabold text-blue-900 text-sm">📊 Matriks Histori Pembayaran Anggota</h3>
+                        <p class="text-[11px] text-slate-500">Status 12 Bulan Sepanjang Tahun & Pembuatan Tagihan Otomatis</p>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-[11px] border-collapse">
+                        <thead>
+                            <tr class="bg-blue-50 text-blue-900 border-b border-slate-200">
+                                <th class="p-2.5 border border-slate-200 font-bold">ID / Nama Anggota</th>
+                                <th class="p-2 border border-slate-200 text-center">Jan</th>
+                                <th class="p-2 border border-slate-200 text-center">Feb</th>
+                                <th class="p-2 border border-slate-200 text-center">Mar</th>
+                                <th class="p-2 border border-slate-200 text-center">Apr</th>
+                                <th class="p-2 border border-slate-200 text-center">Mei</th>
+                                <th class="p-2 border border-slate-200 text-center">Jun</th>
+                                <th class="p-2 border border-slate-200 text-center">Jul</th>
+                                <th class="p-2 border border-slate-200 text-center">Ags</th>
+                                <th class="p-2 border border-slate-200 text-center">Sep</th>
+                                <th class="p-2 border border-slate-200 text-center">Okt</th>
+                                <th class="p-2 border border-slate-200 text-center">Nov</th>
+                                <th class="p-2 border border-slate-200 text-center">Des</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabelHistoriBodyDirect"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 5: Pengeluaran -->
+        <div id="adminTabPengeluaran" class="space-y-6 hidden">
+            <!-- 3 Kartu Keuangan -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div class="bg-white p-4 rounded-2xl shadow-xs border border-slate-200">
+                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Jumlah Kotor (Target Tagihan)</p>
+                    <p id="boxJumlahKotor" class="text-xl font-extrabold text-blue-900 mt-1">Rp 0</p>
+                </div>
+                <div class="bg-white p-4 rounded-2xl shadow-xs border border-slate-200">
+                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Total Pengeluaran</p>
+                    <p id="boxJumlahPengeluaran" class="text-xl font-extrabold text-rose-600 mt-1">Rp 0</p>
+                </div>
+                <div class="bg-white p-4 rounded-2xl shadow-xs border border-slate-200">
+                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Saldo / Kas Bersih</p>
+                    <p id="boxJumlahBersih" class="text-xl font-extrabold text-emerald-600 mt-1">Rp 0</p>
+                </div>
+            </div>
+
+            <!-- Form Tambah Pengeluaran -->
+            <div class="bg-white rounded-3xl shadow-sm border border-slate-200 p-6 space-y-4">
+                <h3 id="formTitlePengeluaran" class="font-extrabold text-blue-900 text-sm">➕ Tambah Catatan Pengeluaran</h3>
+                <form onsubmit="simpanPengeluaran(event)" class="space-y-3 text-xs">
+                    <input type="hidden" id="editIndexPengeluaran" value="-1">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <div>
+                            <label class="block text-[10px] text-slate-400 mb-1 font-semibold uppercase">Nomor / No. Bukti</label>
+                            <input type="text" id="expNomor" placeholder="Contoh: KAS-01" class="w-full px-4 py-3 border rounded-2xl outline-none bg-slate-50 focus:bg-white" required>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] text-slate-400 mb-1 font-semibold uppercase">Nominal Pengeluaran (Rp)</label>
+                            <input type="number" id="expNominal" placeholder="Contoh: 150000" class="w-full px-4 py-3 border rounded-2xl outline-none bg-slate-50 focus:bg-white font-bold" required>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] text-slate-400 mb-1 font-semibold uppercase">Keterangan / Keperluan</label>
+                            <input type="text" id="expKeterangan" placeholder="Keperluan kas GPAI..." class="w-full px-4 py-3 border rounded-2xl outline-none bg-slate-50 focus:bg-white" required>
+                        </div>
+                    </div>
+                    <div class="flex space-x-2 pt-1">
+                        <button type="submit" id="btnSimpanPengeluaran" class="flex-1 bg-blue-900 hover:bg-blue-800 text-white font-bold py-3 rounded-2xl transition shadow-md active:scale-95 text-center">
+                            ✓ Simpan Pengeluaran ke LocalStorage
+                        </button>
+                        <button type="button" id="btnBatalEditPengeluaran" onclick="resetFormPengeluaran()" class="hidden bg-slate-200 text-slate-700 px-5 py-3 rounded-2xl font-bold hover:bg-slate-300 transition">
+                            Batal
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Tabel Daftar Pengeluaran -->
+            <div class="bg-white rounded-3xl shadow-sm border border-slate-200 p-5 overflow-x-auto">
+                <h3 class="font-extrabold text-blue-900 mb-4 text-sm">📋 Daftar Riwayat Pengeluaran Kas</h3>
+                <table class="w-full text-left text-xs">
+                    <thead>
+                        <tr class="border-b border-slate-200 text-slate-500 pb-2">
+                            <th class="pb-2">Nomor</th>
+                            <th class="pb-2">Nominal</th>
+                            <th class="pb-2">Keterangan</th>
+                            <th class="pb-2 text-center">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabelPengeluaranBody" class="divide-y divide-slate-100"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Tab 6: Pengaturan & Data -->
+        <div id="adminTabPengaturan" class="bg-white rounded-3xl shadow-sm border border-slate-200 p-6 max-w-lg mx-auto space-y-6 hidden">
+            <div>
+                <h3 class="font-extrabold text-blue-900 text-base mb-1">Pengaturan Kredensial Admin</h3>
+                <p class="text-xs text-slate-500">Ubah username atau password login admin GPAI TANJUNGSARI</p>
+            </div>
+
+            <div id="pesanAdminNotif" class="p-3 bg-blue-50 border border-blue-200 text-blue-800 rounded-xl text-xs font-medium hidden"></div>
+
+            <form onsubmit="prosesUpdateAdmin(event)" class="space-y-3 text-xs">
+                <div>
+                    <label class="block font-semibold text-slate-600 mb-1">Username Lama <span class="text-rose-500">*</span></label>
+                    <input type="text" id="updUserLama" class="w-full px-3.5 py-2.5 border rounded-xl outline-none focus:ring-2 focus:ring-blue-600" required>
+                </div>
+                <div>
+                    <label class="block font-semibold text-slate-600 mb-1">Password Lama <span class="text-rose-500">*</span></label>
+                    <input type="password" id="updPassLama" class="w-full px-3.5 py-2.5 border rounded-xl outline-none focus:ring-2 focus:ring-blue-600" required>
+                </div>
+                <div>
+                    <label class="block font-semibold text-slate-600 mb-1">Username Baru (Opsional)</label>
+                    <input type="text" id="updUserBaru" class="w-full px-3.5 py-2.5 border rounded-xl outline-none focus:ring-2 focus:ring-blue-600">
+                </div>
+                <div>
+                    <label class="block font-semibold text-slate-600 mb-1">Password Baru (Opsional)</label>
+                    <input type="password" id="updPassBaru" class="w-full px-3.5 py-2.5 border rounded-xl outline-none focus:ring-2 focus:ring-blue-600">
+                </div>
+                <button type="submit" class="w-full bg-blue-900 text-white font-bold py-3 rounded-2xl hover:bg-blue-800 transition shadow-md active:scale-95 cursor-pointer">
+                    Simpan Perubahan Akun
+                </button>
+            </form>
+
+            <div class="border-t border-slate-200 pt-5 space-y-3">
+                <h4 class="font-bold text-slate-800 text-xs uppercase tracking-wide">Cadangan Data (Backup & Reset)</h4>
+                <p class="text-[11px] text-slate-500">Data tersimpan langsung di browser perangkat Anda melalui LocalStorage.</p>
+                <div class="grid grid-cols-2 gap-2 text-xs">
+                    <button type="button" onclick="exportDataJSON()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 px-3 rounded-xl transition border border-slate-200 flex items-center justify-center space-x-1.5">
+                        <span>📥</span>
+                        <span>Ekspor JSON</span>
+                    </button>
+                    <button type="button" onclick="resetKeDataAwal()" class="bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold py-2.5 px-3 rounded-xl transition border border-rose-200 flex items-center justify-center space-x-1.5">
+                        <span>🔄</span>
+                        <span>Reset Data Awal</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal Struk Resmi -->
+    <div id="modalStruk" class="fixed inset-0 bg-black/60 hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl max-h-[92vh] overflow-y-auto space-y-4 relative">
+            <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                <div class="flex items-center space-x-2">
+                    <span class="bg-blue-900 text-white p-2 rounded-xl text-sm">🌐</span>
+                    <span class="font-black text-blue-900 text-base">GPAI TANJUNGSARI</span>
+                </div>
+                <button type="button" onclick="tutupModalStruk()" class="text-slate-400 hover:text-slate-600 font-bold text-xl cursor-pointer w-8 h-8 rounded-full flex items-center justify-center bg-slate-100">✕</button>
+            </div>
+
+            <div class="text-center space-y-1">
+                <h3 class="font-extrabold text-slate-900 text-base">STRUK RESMI PEMBAYARAN IURAN</h3>
+                <p class="text-[11px] text-slate-400">Bukti Transaksi Sah GPAI Tanjungsari</p>
+            </div>
+
+            <div class="bg-emerald-50 border border-emerald-300 text-emerald-700 py-2.5 px-4 rounded-2xl font-bold text-xs flex items-center justify-center space-x-2 shadow-xs">
+                <span>✔</span>
+                <span>STATUS: LUNAS DIVERIFIKASI</span>
+            </div>
+
+            <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 text-xs space-y-2.5 font-sans">
+                <div class="flex justify-between"><span class="text-slate-500">No. Transaksi</span><span id="strukNoTransaksi" class="font-mono font-bold text-slate-800"></span></div>
+                <div class="flex justify-between"><span class="text-slate-500">Waktu Verifikasi</span><span id="strukWaktu" class="font-semibold text-slate-800"></span></div>
+                <div class="flex justify-between"><span class="text-slate-500">User ID</span><span id="strukUserId" class="font-mono font-bold text-slate-800"></span></div>
+                <div class="flex justify-between"><span class="text-slate-500">Nama Anggota</span><span id="strukNama" class="font-bold text-slate-900"></span></div>
+                <div class="flex justify-between"><span class="text-slate-500">Jabatan Iuran</span><span id="strukJabatan" class="font-semibold text-slate-800"></span></div>
+                <div class="flex justify-between"><span class="text-slate-500">Periode Tagihan</span><span id="strukPeriode" class="font-semibold text-slate-800"></span></div>
+                <div class="flex justify-between"><span class="text-slate-500">Metode Pembayaran</span><span class="font-semibold text-slate-800">BANK BJB (AI KARTINI)</span></div>
+            </div>
+
+            <div class="border-t border-dashed border-slate-300 pt-3 flex justify-between items-center">
+                <span class="font-bold text-slate-700 text-xs">TOTAL NOMINAL</span>
+                <span id="strukNominal" class="font-extrabold text-blue-900 text-xl"></span>
+            </div>
+
+            <div class="flex items-center space-x-3 pt-2 border-t border-slate-100">
+                <div class="bg-slate-100 p-2.5 rounded-xl border border-slate-200">
+                    <svg class="w-8 h-8 text-slate-700" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M2 2h8v8H2V2zm2 2v4h4V4H4zm8-2h8v8h-8V2zm2 2v4h4V4h-4zM2 14h8v8H2v-8zm2 2v4h4v-4H4zm12-2h2v2h-2v-2zm4 0h2v2h-2v-2zm-4 4h2v2h-2v-2zm4 0h2v2h-2v-2zm-2-2h2v2h-2v-2zm0 4h2v2h-2v-2z"/>
+                    </svg>
+                </div>
+                <p class="text-[10px] text-slate-400 leading-tight">
+                    Dokumen ini diterbitkan secara otomatis oleh sistem GPAI Tanjungsari dan dinyatakan sah.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3 pt-2">
+                <button type="button" onclick="tutupModalStruk()" class="bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-700 font-bold py-3 rounded-2xl text-xs transition cursor-pointer">
+                    Tutup
+                </button>
+                <button type="button" onclick="bagikanStruk()" class="bg-blue-900 hover:bg-blue-800 text-white font-bold py-3 rounded-2xl text-xs transition cursor-pointer shadow-md flex items-center justify-center space-x-1.5 active:scale-95">
+                    <span>🔗</span>
+                    <span>Bagikan Struk</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- LOGIKA JAVASCRIPT LENGKAP DENGAN LOCALSTORAGE -->
+    <script>
+        // Data Awal Bawaan GPAI Tanjungsari jika localStorage masih kosong
+        const DEFAULT_USERS = [
+            {
+                user_id: "GPAI001",
+                nama: "Ai Kartini",
+                wa: "089504514402",
+                jabatan: "Sertifikasi",
+                nominal: 100000,
+                periode: "Oktober",
+                status: "Lunas",
+                histori: { Jan: "Lunas", Feb: "Lunas", Mar: "Lunas", Apr: "Lunas", Mei: "Lunas", Jun: "Lunas", Jul: "Lunas", Ags: "Lunas", Sep: "Lunas", Okt: "Lunas", Nov: "Belum", Des: "Belum" }
+            },
+            {
+                user_id: "GPAI002",
+                nama: "Ahmad Fauzi",
+                wa: "081234567891",
+                jabatan: "Sertifikasi",
+                nominal: 100000,
+                periode: "Oktober",
+                status: "Menunggu Verifikasi",
+                histori: { Jan: "Lunas", Feb: "Lunas", Mar: "Lunas", Apr: "Lunas", Mei: "Lunas", Jun: "Lunas", Jul: "Lunas", Ags: "Lunas", Sep: "Lunas", Okt: "Wait", Nov: "Belum", Des: "Belum" }
+            },
+            {
+                user_id: "GPAI003",
+                nama: "Siti Nurhaliza",
+                wa: "081398765432",
+                jabatan: "PNS",
+                nominal: 50000,
+                periode: "Oktober",
+                status: "Belum Lunas",
+                histori: { Jan: "Lunas", Feb: "Lunas", Mar: "Lunas", Apr: "Lunas", Mei: "Lunas", Jun: "Lunas", Jul: "Lunas", Ags: "Lunas", Sep: "Lunas", Okt: "Belum", Nov: "Belum", Des: "Belum" }
+            },
+            {
+                user_id: "GPAI004",
+                nama: "Dedi Supriadi",
+                wa: "085712345678",
+                jabatan: "Sertifikasi",
+                nominal: 100000,
+                periode: "Oktober",
+                status: "Belum Lunas",
+                histori: { Jan: "Lunas", Feb: "Lunas", Mar: "Lunas", Apr: "Lunas", Mei: "Lunas", Jun: "Lunas", Jul: "Lunas", Ags: "Lunas", Sep: "Lunas", Okt: "Belum", Nov: "Belum", Des: "Belum" }
+            },
+            {
+                user_id: "GPAI005",
+                nama: "Hj. Eni Rohaeni",
+                wa: "082123456780",
+                jabatan: "PNS",
+                nominal: 50000,
+                periode: "Oktober",
+                status: "Lunas",
+                histori: { Jan: "Lunas", Feb: "Lunas", Mar: "Lunas", Apr: "Lunas", Mei: "Lunas", Jun: "Lunas", Jul: "Lunas", Ags: "Lunas", Sep: "Lunas", Okt: "Lunas", Nov: "Belum", Des: "Belum" }
+            }
+        ];
+
+        const DEFAULT_EXPENSES = [
+            { nomor: "KAS-01", nominal: 150000, keterangan: "Konsumsi Pertemuan KKG GPAI Tanjungsari" },
+            { nomor: "KAS-02", nominal: 50000, keterangan: "ATK dan Cetak Dokumen Kegiatan" }
+        ];
+
+        const DEFAULT_ADMIN = {
+            username: "admin",
+            password: "password123"
+        };
+
+        // State Global
+        let globalUsers = [];
+        let globalExpenses = [];
+        let ADMIN_USER_CACHED = "admin";
+        let ADMIN_PASS_CACHED = "password123";
+
+        let modeAdminState = false;
+        let isLoggedInState = false;
+        let currentFilterStatus = "Semua";
+        let isEditMode = false;
+        let activeReceiptUser = null;
+
+        const daftarBulan = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+        const mappingSingkat = { "Jan": "Januari", "Feb": "Februari", "Mar": "Maret", "Apr": "April", "Mei": "Mei", "Jun": "Juni", "Jul": "Juli", "Ags": "Agustus", "Sep": "September", "Okt": "Oktober", "Nov": "November", "Des": "Desember" };
+
+        // ==========================================
+        // LOCALSTORAGE PERSISTENCE (PENYIMPANAN OTOMATIS)
+        // ==========================================
+        function muatDataDariStorage() {
+            try {
+                // Muat Anggota
+                const rawUsers = localStorage.getItem('gpai_users');
+                if (rawUsers) {
+                    globalUsers = JSON.parse(rawUsers);
+                } else {
+                    globalUsers = JSON.parse(JSON.stringify(DEFAULT_USERS));
+                    simpanUsersKeStorage();
+                }
+
+                // Muat Pengeluaran
+                const rawExpenses = localStorage.getItem('gpai_expenses');
+                if (rawExpenses) {
+                    globalExpenses = JSON.parse(rawExpenses);
+                } else {
+                    globalExpenses = JSON.parse(JSON.stringify(DEFAULT_EXPENSES));
+                    simpanExpensesKeStorage();
+                }
+
+                // Muat Kredensial Admin
+                const rawAdmin = localStorage.getItem('gpai_admin');
+                if (rawAdmin) {
+                    const adm = JSON.parse(rawAdmin);
+                    ADMIN_USER_CACHED = adm.username || "admin";
+                    ADMIN_PASS_CACHED = adm.password || "password123";
+                } else {
+                    simpanAdminKeStorage();
+                }
+
+                perbaruiInfoStorageBadge();
+            } catch (err) {
+                console.error("Gagal membaca localStorage:", err);
+            }
+        }
+
+        function simpanUsersKeStorage() {
+            try {
+                localStorage.setItem('gpai_users', JSON.stringify(globalUsers));
+                perbaruiInfoStorageBadge();
+            } catch (e) {
+                console.error("Gagal simpan users ke localStorage:", e);
+            }
+        }
+
+        function simpanExpensesKeStorage() {
+            try {
+                localStorage.setItem('gpai_expenses', JSON.stringify(globalExpenses));
+            } catch (e) {
+                console.error("Gagal simpan expenses ke localStorage:", e);
+            }
+        }
+
+        function simpanAdminKeStorage() {
+            try {
+                localStorage.setItem('gpai_admin', JSON.stringify({
+                    username: ADMIN_USER_CACHED,
+                    password: ADMIN_PASS_CACHED
+                }));
+            } catch (e) {
+                console.error("Gagal simpan admin ke localStorage:", e);
+            }
+        }
+
+        function perbaruiInfoStorageBadge() {
+            const badge = document.getElementById('storageInfoBadge');
+            if (badge) {
+                badge.innerText = `${globalUsers.length} Anggota Tersimpan`;
+            }
+        }
+
+        // ==========================================
+        // TOGGLE & NAVIGASI
+        // ==========================================
+        function toggleAdminMode() {
+            const secPelanggan = document.getElementById('sectionPelanggan');
+            const secLogin = document.getElementById('sectionLoginAdmin');
+            const secDashboard = document.getElementById('sectionDashboardAdmin');
+            const btnText = document.getElementById('btnAdminToggleText');
+
+            if (!modeAdminState) {
+                // Masuk ke flow Admin
+                modeAdminState = true;
+                secPelanggan.classList.add('hidden');
+                if (isLoggedInState) {
+                    secLogin.classList.add('hidden');
+                    secDashboard.classList.remove('hidden');
+                    btnText.innerText = "Keluar Admin";
+                    renderDashboardData();
+                } else {
+                    secLogin.classList.remove('hidden');
+                    secDashboard.classList.add('hidden');
+                    btnText.innerText = "Batal / Kembali";
+                }
+            } else {
+                // Kembali ke Halaman Pelanggan
+                modeAdminState = false;
+                secLogin.classList.add('hidden');
+                secDashboard.classList.add('hidden');
+                secPelanggan.classList.remove('hidden');
+                btnText.innerText = "Login Admin";
+            }
+        }
+
+        function prosesLoginAdmin(e) {
+            e.preventDefault();
+            const u = document.getElementById('adminUser').value.trim();
+            const p = document.getElementById('adminPass').value.trim();
+
+            if (u === ADMIN_USER_CACHED && p === ADMIN_PASS_CACHED) {
+                isLoggedInState = true;
+                document.getElementById('sectionLoginAdmin').classList.add('hidden');
+                document.getElementById('sectionDashboardAdmin').classList.remove('hidden');
+                document.getElementById('btnAdminToggleText').innerText = "Keluar Admin";
+                renderDashboardData();
+            } else {
+                alert("Username atau Password Admin salah!");
+            }
+        }
+
+        function switchAdminTab(tab) {
+            const tabs = ['statistik', 'pelanggan', 'verifikasi', 'histori', 'pengeluaran', 'pengaturan'];
+            tabs.forEach(t => {
+                const el = document.getElementById('adminTab' + t.charAt(0).toUpperCase() + t.slice(1));
+                const btn = document.getElementById('tabBtn' + t.charAt(0).toUpperCase() + t.slice(1));
+                if (el) {
+                    if (t === tab) el.classList.remove('hidden');
+                    else el.classList.add('hidden');
+                }
+                if (btn) {
+                    if (t === tab) {
+                        btn.className = "px-4 py-2.5 rounded-xl transition cursor-pointer whitespace-nowrap bg-blue-900 text-white shadow-xs";
+                    } else {
+                        btn.className = "px-4 py-2.5 rounded-xl transition cursor-pointer whitespace-nowrap text-slate-600 hover:bg-slate-100";
+                    }
+                }
+            });
+
+            if (tab === 'histori') renderMatriksHistori();
+            if (tab === 'verifikasi') renderTabelVerifikasi();
+            if (tab === 'pelanggan') renderDaftarPelanggan();
+            if (tab === 'pengeluaran') renderDaftarPengeluaran();
+            if (tab === 'statistik') renderDashboardData();
+        }
+
+        // ==========================================
+        // CEK TAGIHAN (PELANGGAN)
+        // ==========================================
+        function cekTagihan(e) {
+            e.preventDefault();
+            const uid = document.getElementById('inputUserId').value.trim().toUpperCase();
+            const errEl = document.getElementById('pesanError');
+            const wrapEl = document.getElementById('wrapperTagihan');
+
+            const found = globalUsers.find(u => u.user_id.toUpperCase() === uid);
+
+            if (found) {
+                window.currentActiveUser = found;
+                errEl.classList.add('hidden');
+                wrapEl.classList.remove('hidden');
+
+                document.getElementById('resUserIdBadge').innerText = "USER ID: " + found.user_id;
+                document.getElementById('resNama').innerText = found.nama;
+                document.getElementById('resJabatan').innerText = found.jabatan || "-";
+                document.getElementById('resPeriode').innerText = found.periode;
+                document.getElementById('resNominal').innerText = "Rp" + Number(found.nominal).toLocaleString('id-ID');
+
+                const statusBadge = document.getElementById('resStatusBadge');
+                const boxKonfirmasi = document.getElementById('boxKonfirmasiDiterima');
+                const instruksiBayar = document.getElementById('instruksiBayar');
+                const wrapStruk = document.getElementById('wrapperTombolStruk');
+
+                statusBadge.innerText = found.status;
+
+                if (found.status === 'Lunas') {
+                    statusBadge.className = "text-xs font-bold px-3 py-1 rounded-xl bg-emerald-100 text-emerald-800";
+                    boxKonfirmasi.classList.add('hidden');
+                    instruksiBayar.classList.add('hidden');
+                    wrapStruk.classList.remove('hidden');
+                } else if (found.status === 'Menunggu Verifikasi') {
+                    statusBadge.className = "text-xs font-bold px-3 py-1 rounded-xl bg-amber-100 text-amber-800";
+                    boxKonfirmasi.classList.remove('hidden');
+                    instruksiBayar.classList.add('hidden');
+                    wrapStruk.classList.add('hidden');
+                } else {
+                    statusBadge.className = "text-xs font-bold px-3 py-1 rounded-xl bg-rose-100 text-rose-800";
+                    boxKonfirmasi.classList.add('hidden');
+                    instruksiBayar.classList.remove('hidden');
+                    wrapStruk.classList.add('hidden');
+                }
+            } else {
+                wrapEl.classList.add('hidden');
+                errEl.innerText = `Data anggota dengan User ID '${uid}' tidak ditemukan. Silakan periksa kembali atau hubungi admin.`;
+                errEl.classList.remove('hidden');
+            }
+        }
+
+        function konfirmasiBayar() {
+            if (window.currentActiveUser) {
+                window.currentActiveUser.status = "Menunggu Verifikasi";
+                if (!window.currentActiveUser.histori) window.currentActiveUser.histori = {};
+
+                prosesRentangBulan(window.currentActiveUser, "Wait");
+                simpanUsersKeStorage();
+
+                alert("✓ Konfirmasi pembayaran berhasil disimpan! Status diubah menjadi 'Menunggu Verifikasi'. Mohon tunggu verifikasi Admin.");
+
+                document.getElementById('resStatusBadge').innerText = "Menunggu Verifikasi";
+                document.getElementById('resStatusBadge').className = "text-xs font-bold px-3 py-1 rounded-xl bg-amber-100 text-amber-800";
+                document.getElementById('boxKonfirmasiDiterima').classList.remove('hidden');
+                document.getElementById('instruksiBayar').classList.add('hidden');
+                renderDashboardData();
+            }
+        }
+
+        function salinRekening(btn) {
+            const rek = "0095342744100";
+            navigator.clipboard.writeText(rek).then(() => {
+                const old = btn.innerText;
+                btn.innerText = "✓ Disalin!";
+                btn.classList.add("bg-emerald-500", "text-white");
+                setTimeout(() => {
+                    btn.innerText = old;
+                    btn.classList.remove("bg-emerald-500", "text-white");
+                }, 2000);
+            }).catch(() => {
+                alert("Nomor Rekening: " + rek);
+            });
+        }
+
+        // ==========================================
+        // KELOLA ANGGOTA (TAMBAH / EDIT / HAPUS)
+        // ==========================================
+        function toggleFormTambah() {
+            const form = document.getElementById('wrapperFormTambah');
+            const ikon = document.getElementById('ikonPanahForm');
+            if (form.classList.contains('hidden')) {
+                form.classList.remove('hidden');
+                ikon.innerText = "▲ Tutup Form";
+            } else {
+                form.classList.add('hidden');
+                ikon.innerText = "▼ Buka Form";
+            }
+        }
+
+        function pilihJabatan(jabatan, nominal, btn) {
+            document.querySelectorAll('.btn-jabatan').forEach(b => {
+                b.classList.remove('active', 'bg-blue-900', 'text-white', 'border-blue-900');
+                b.classList.add('bg-slate-50', 'text-slate-700', 'border-slate-300');
+            });
+            btn.classList.add('active', 'bg-blue-900', 'text-white', 'border-blue-900');
+            btn.classList.remove('bg-slate-50', 'text-slate-700', 'border-slate-300');
+
+            document.getElementById('addJabatan').value = jabatan;
+            document.getElementById('addNominal').value = nominal;
+        }
+
+        function simpanPelanggan(e) {
+            e.preventDefault();
+            const id = document.getElementById('addId').value.trim().toUpperCase();
+            const nama = document.getElementById('addNama').value.trim();
+            const wa = document.getElementById('addWa').value.trim();
+            const jabatan = document.getElementById('addJabatan').value;
+            const nominal = Number(document.getElementById('addNominal').value);
+            const periode = document.getElementById('addPeriode').value.trim();
+            const status = document.getElementById('addStatus').value;
+
+            let existingIndex = globalUsers.findIndex(u => u.user_id.toUpperCase() === id);
+            let defaultHistori = { Jan: "Belum", Feb: "Belum", Mar: "Belum", Apr: "Belum", Mei: "Belum", Jun: "Belum", Jul: "Belum", Ags: "Belum", Sep: "Belum", Okt: "Belum", Nov: "Belum", Des: "Belum" };
+
+            let existing = existingIndex !== -1 ? globalUsers[existingIndex] : null;
+            let historiData = existing && existing.histori ? { ...defaultHistori, ...existing.histori } : { ...defaultHistori };
+
+            let targetStatusHistori = "Belum";
+            if (status === "Lunas") targetStatusHistori = "Lunas";
+            else if (status === "Menunggu Verifikasi") targetStatusHistori = "Wait";
+
+            let tempObj = { periode: periode, histori: historiData };
+            prosesRentangBulan(tempObj, targetStatusHistori);
+            historiData = tempObj.histori;
+
+            let userData = {
+                user_id: id,
+                nama: nama,
+                wa: wa,
+                jabatan: jabatan,
+                nominal: nominal,
+                periode: periode,
+                status: status,
+                histori: historiData
+            };
+
+            if (existingIndex !== -1) {
+                globalUsers[existingIndex] = userData;
+                alert(`✓ Data anggota '${id} (${nama})' berhasil diperbarui di LocalStorage!`);
+            } else {
+                globalUsers.push(userData);
+                alert(`✓ Anggota baru '${id} (${nama})' berhasil ditambahkan ke LocalStorage!`);
+            }
+
+            simpanUsersKeStorage();
+            batalEditPelanggan();
+            toggleFormTambah();
+            renderDashboardData();
+        }
+
+        function editPelanggan(uid) {
+            const user = globalUsers.find(u => u.user_id.toUpperCase() === uid.toUpperCase());
+            if (!user) return;
+
+            isEditMode = true;
+            document.getElementById('addId').value = user.user_id;
+            document.getElementById('addId').disabled = true;
+            document.getElementById('addNama').value = user.nama;
+            document.getElementById('addWa').value = user.wa || "";
+            document.getElementById('addJabatan').value = user.jabatan || "Sertifikasi";
+            document.getElementById('addNominal').value = user.nominal;
+            document.getElementById('addPeriode').value = user.periode;
+            document.getElementById('addStatus').value = user.status;
+
+            if (user.jabatan === 'PNS') {
+                const btnPns = document.getElementById('btnJabPns');
+                if (btnPns) pilihJabatan('PNS', user.nominal || 50000, btnPns);
+            } else {
+                const btnSert = document.getElementById('btnJabSertifikasi');
+                if (btnSert) pilihJabatan('Sertifikasi', user.nominal || 100000, btnSert);
+            }
+
+            document.getElementById('formTitlePelanggan').innerText = `✏️ Edit Data Anggota (${uid})`;
+            document.getElementById('btnSimpanPelanggan').innerText = "✓ Perbarui Data di LocalStorage";
+            document.getElementById('btnBatalEdit').classList.remove('hidden');
+
+            document.getElementById('wrapperFormTambah').classList.remove('hidden');
+            document.getElementById('ikonPanahForm').innerText = "▲ Tutup Form";
+            document.getElementById('wrapperFormTambah').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function batalEditPelanggan() {
+            isEditMode = false;
+            document.getElementById('addId').value = "";
+            document.getElementById('addId').disabled = false;
+            document.getElementById('addNama').value = "";
+            document.getElementById('addWa').value = "";
+            document.getElementById('addJabatan').value = "Sertifikasi";
+            document.getElementById('addNominal').value = "100000";
+            document.getElementById('addPeriode').value = "Oktober";
+            document.getElementById('addStatus').value = "Belum Lunas";
+
+            const btnSert = document.getElementById('btnJabSertifikasi');
+            if (btnSert) pilihJabatan('Sertifikasi', 100000, btnSert);
+
+            document.getElementById('formTitlePelanggan').innerText = "➕ Tambah Anggota Baru";
+            document.getElementById('btnSimpanPelanggan').innerText = "✓ Simpan ke LocalStorage";
+            document.getElementById('btnBatalEdit').classList.add('hidden');
+        }
+
+        function hapusPelanggan(uid) {
+            const user = globalUsers.find(u => u.user_id.toUpperCase() === uid.toUpperCase());
+            const nama = user ? user.nama : uid;
+            if (confirm(`Apakah Anda yakin ingin menghapus anggota ${uid} (${nama}) dari sistem?`)) {
+                globalUsers = globalUsers.filter(u => u.user_id.toUpperCase() !== uid.toUpperCase());
+                simpanUsersKeStorage();
+                alert(`✓ Anggota ${uid} berhasil dihapus.`);
+                renderDashboardData();
+            }
+        }
+
+        function setFilterStatus(status) {
+            currentFilterStatus = status;
+            document.querySelectorAll('.filter-btn').forEach(b => {
+                if (b.getAttribute('data-status') === status) {
+                    b.className = "filter-btn px-3 py-1.5 rounded-xl border transition bg-blue-900 text-white border-blue-900 shadow-xs";
+                } else {
+                    b.className = "filter-btn px-3 py-1.5 rounded-xl border transition bg-white text-slate-600 border-slate-200";
+                }
+            });
+            renderDaftarPelanggan();
+        }
+
+        function renderDaftarPelanggan() {
+            const keywordInput = document.getElementById('inputPencarian');
+            const keyword = keywordInput ? keywordInput.value.toLowerCase().trim() : '';
+            const container = document.getElementById('listKartuPelanggan');
+            container.innerHTML = "";
+
+            let filtered = globalUsers.filter(u => {
+                let matchKeyword = u.user_id.toLowerCase().includes(keyword) || 
+                                   u.nama.toLowerCase().includes(keyword) || 
+                                   (u.wa && u.wa.toLowerCase().includes(keyword));
+                let matchStatus = currentFilterStatus === 'Semua' || u.status === currentFilterStatus;
+                return matchKeyword && matchStatus;
+            });
+
+            if (filtered.length === 0) {
+                container.innerHTML = `<div class="bg-white p-8 rounded-3xl text-center text-slate-400 text-xs border border-slate-200">Tidak ada data anggota yang sesuai pencarian / filter.</div>`;
+                return;
+            }
+
+            filtered.forEach(u => {
+                let badgeClass = u.status === 'Lunas' ? 'bg-emerald-100 text-emerald-800' :
+                                 u.status === 'Menunggu Verifikasi' ? 'bg-amber-100 text-amber-800' : 'bg-rose-100 text-rose-800';
+
+                let actionButton = '';
+                if (u.status === 'Menunggu Verifikasi') {
+                    actionButton = `<button type="button" onclick="konfirmasiVerifikasiAdmin('${u.user_id}')" class="bg-emerald-500 hover:bg-emerald-600 text-white px-3.5 py-2 rounded-xl text-xs font-bold shadow-xs transition cursor-pointer">Verifikasi Lunas</button>`;
+                } else if (u.status === 'Lunas') {
+                    actionButton = `<button type="button" onclick="bukaModalStruk('${u.user_id}')" class="bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 px-3.5 py-2 rounded-xl text-xs font-bold shadow-xs transition cursor-pointer flex items-center space-x-1"><span>📄</span><span>Struk</span></button>`;
+                } else {
+                    actionButton = `<button type="button" onclick="editPelanggan('${u.user_id}')" class="bg-blue-50 hover:bg-blue-100 text-blue-700 px-3.5 py-2 rounded-xl text-xs font-bold transition cursor-pointer">Edit Tagihan</button>`;
+                }
+
+                let waNum = u.wa ? u.wa.replace(/^0/, '62') : '';
+                let jabatanVal = u.jabatan || 'Sertifikasi';
+                let waMessage = "";
+                if (u.status === 'Lunas') {
+                    waMessage = `Halo ${u.nama}, terima kasih! Pembayaran iuran GPAI Tanjungsari periode ${u.periode} sebesar Rp${Number(u.nominal).toLocaleString('id-ID')} telah LUNAS diverifikasi. Struk resmi sah dapat dilihat di sistem.`;
+                } else {
+                    waMessage = `Kepada Yth. ${u.nama},\n\nMohon pembayaran iuran GPAI Tanjungsari untuk periode ${u.periode} sebesar Rp${Number(u.nominal).toLocaleString('id-ID')} dapat disalurkan melalui Bank BJB Rek. 0095342744100 a.n AI KARTINI.\n\nTerima Kasih.\n- Admin GPAI Tanjungsari`;
+                }
+
+                let waButton = waNum ? `<a href="https://wa.me/${waNum}?text=${encodeURIComponent(waMessage)}" target="_blank" rel="noreferrer" class="bg-emerald-500 hover:bg-emerald-600 text-white px-2.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center space-x-1 shadow-xs" title="Kirim Pesan WhatsApp"><span>💬 WA</span></a>` : '';
+
+                container.innerHTML += `
+                    <div class="bg-white p-4 rounded-3xl shadow-xs border border-slate-200 space-y-3">
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center space-x-2">
+                                <span class="bg-slate-100 px-2.5 py-1 rounded-xl text-xs font-mono font-bold text-slate-700">${u.user_id}</span>
+                                <span class="font-extrabold text-sm text-slate-900">${u.nama}</span>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                ${waButton}
+                                <span class="text-xs font-bold px-3 py-1 rounded-full ${badgeClass}">${u.status}</span>
+                            </div>
+                        </div>
+                        <div class="flex justify-between items-center text-xs text-slate-500">
+                            <span>📱 ${u.wa || '-'} • ${jabatanVal} • Periode: ${u.periode}</span>
+                            <span class="font-black text-slate-900 text-sm">Rp${Number(u.nominal).toLocaleString('id-ID')}</span>
+                        </div>
+                        <div class="flex justify-between items-center pt-2.5 border-t border-slate-100">
+                            <div class="flex items-center space-x-2">
+                                ${actionButton}
+                                <button type="button" onclick="editPelanggan('${u.user_id}')" class="text-slate-400 hover:text-slate-700 text-xs font-semibold px-2 py-1">Edit</button>
+                            </div>
+                            <button type="button" onclick="hapusPelanggan('${u.user_id}')" class="text-rose-500 hover:text-rose-700 text-xs font-bold px-2 py-1 cursor-pointer">
+                                🗑️ Hapus
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        // ==========================================
+        // VERIFIKASI PEMBAYARAN
+        // ==========================================
+        function konfirmasiVerifikasiAdmin(uid) {
+            const user = globalUsers.find(u => u.user_id.toUpperCase() === uid.toUpperCase());
+            if (!user) return;
+
+            if (confirm(`Apakah Anda yakin ingin memverifikasi pembayaran untuk ${uid} (${user.nama}) sebesar Rp${Number(user.nominal).toLocaleString('id-ID')} menjadi Lunas?`)) {
+                user.status = "Lunas";
+                if (!user.histori) user.histori = {};
+
+                prosesRentangBulan(user, "Lunas");
+                simpanUsersKeStorage();
+
+                alert(`✓ Pembayaran untuk ${uid} (${user.nama}) berhasil diverifikasi Lunas!`);
+                renderDashboardData();
+            }
+        }
+
+        function renderTabelVerifikasi() {
+            const tbody = document.getElementById('tabelVerifikasiBody');
+            tbody.innerHTML = "";
+            const pendingUsers = globalUsers.filter(u => u.status === 'Menunggu Verifikasi');
+
+            const countBadge = document.getElementById('countVerifikasiPill');
+            const badgeTab = document.getElementById('badgePendingCount');
+
+            if (countBadge) countBadge.innerText = `${pendingUsers.length} Menunggu`;
+            if (badgeTab) {
+                if (pendingUsers.length > 0) {
+                    badgeTab.innerText = pendingUsers.length;
+                    badgeTab.classList.remove('hidden');
+                } else {
+                    badgeTab.classList.add('hidden');
+                }
+            }
+
+            if (pendingUsers.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="py-6 text-center text-slate-400">Tidak ada konfirmasi pembayaran yang menunggu verifikasi saat ini.</td></tr>`;
+                return;
+            }
+
+            pendingUsers.forEach(u => {
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="py-3 font-mono font-bold text-slate-800">${u.user_id}</td>
+                        <td class="py-3 font-semibold text-slate-900">${u.nama}</td>
+                        <td class="py-3 text-slate-600">${u.periode}</td>
+                        <td class="py-3 font-bold text-blue-900">Rp${Number(u.nominal).toLocaleString('id-ID')}</td>
+                        <td class="py-3 text-center">
+                            <button type="button" onclick="konfirmasiVerifikasiAdmin('${u.user_id}')" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-1.5 rounded-xl font-bold text-xs transition shadow-xs cursor-pointer">
+                                ✓ Verifikasi Lunas
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        // ==========================================
+        // HISTORI BULANAN & TAGIHAN OTOMATIS
+        // ==========================================
+        function prosesRentangBulan(userObj, targetStatus) {
+            let periode = (userObj.periode || "").toLowerCase();
+            let daftarBulanLokal = ["januari", "februari", "maret", "april", "mei", "juni", "juli", "agustus", "september", "oktober", "november", "desember"];
+            let daftarSingkatan = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Ags", "Sep", "Okt", "Nov", "Des"];
+
+            let cleanPeriode = periode.replace(/\s*-\s*/g, "-").replace(/\s*s\/d\s*/g, "-").replace(/\s*sampai\s*/g, "-");
+
+            if (cleanPeriode.includes("-")) {
+                let bagian = cleanPeriode.split("-").map(s => s.trim());
+                let idxMulai = -1;
+                let idxSelesai = -1;
+                daftarBulanLokal.forEach((b, idx) => {
+                    if (b.startsWith(bagian[0]) || bagian[0].startsWith(b.substring(0, 3))) {
+                        if (idxMulai === -1) idxMulai = idx;
+                    }
+                    if (b.startsWith(bagian[1]) || bagian[1].startsWith(b.substring(0, 3))) {
+                        idxSelesai = idx;
+                    }
+                });
+                if (idxMulai !== -1) {
+                    if (idxSelesai === -1) idxSelesai = idxMulai;
+                    if (idxMulai > idxSelesai) { let t = idxMulai; idxMulai = idxSelesai; idxSelesai = t; }
+                    for (let i = idxMulai; i <= idxSelesai; i++) {
+                        userObj.histori[daftarSingkatan[i]] = targetStatus;
+                    }
+                }
+            } else {
+                let matchedIdx = -1;
+                daftarBulanLokal.forEach((b, idx) => {
+                    if (periode.includes(b) || periode.includes(daftarSingkatan[idx].toLowerCase())) {
+                        matchedIdx = idx;
+                    }
+                });
+                if (matchedIdx !== -1) {
+                    userObj.histori[daftarSingkatan[matchedIdx]] = targetStatus;
+                }
+            }
+        }
+
+        function buatTagihanBulanBerikutnya(uid) {
+            const user = globalUsers.find(u => u.user_id.toUpperCase() === uid.toUpperCase());
+            if (!user) return;
+
+            let periodeAktif = user.periode || "Oktober";
+            let namaBulanAktif = Object.keys(mappingSingkat).find(k => periodeAktif.toLowerCase().includes(k.toLowerCase()))
+                ? mappingSingkat[Object.keys(mappingSingkat).find(k => periodeAktif.toLowerCase().includes(k.toLowerCase()))]
+                : periodeAktif;
+
+            let currentIndex = daftarBulan.findIndex(b => b.toLowerCase() === namaBulanAktif.toLowerCase());
+            if (currentIndex === -1) currentIndex = 9; // Oktober default
+            let nextIndex = (currentIndex + 1) % 12;
+            let bulanBerikutnya = daftarBulan[nextIndex];
+
+            if (!confirm(`Buat tagihan otomatis untuk ${user.nama} (${user.user_id}) untuk periode bulan ${bulanBerikutnya}?`)) return;
+
+            user.periode = bulanBerikutnya;
+            user.status = "Belum Lunas";
+
+            let singkatanBaru = Object.keys(mappingSingkat).find(k => mappingSingkat[k] === bulanBerikutnya) || "Nov";
+            if (!user.histori) user.histori = {};
+            user.histori[singkatanBaru] = "Belum";
+
+            simpanUsersKeStorage();
+            alert(`✓ Tagihan periode ${bulanBerikutnya} berhasil dibuat dan disimpan otomatis!`);
+            renderMatriksHistori();
+            renderDashboardData();
+        }
+
+        function renderMatriksHistori() {
+            const tbody = document.getElementById('tabelHistoriBodyDirect');
+            tbody.innerHTML = "";
+            const bulanList = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Ags", "Sep", "Okt", "Nov", "Des"];
+
+            globalUsers.forEach(u => {
+                let rowHtml = `<tr class="border-b border-slate-100 hover:bg-slate-50">
+                    <td class="p-2.5 border border-slate-200">
+                        <div class="font-bold font-mono text-slate-800 text-xs">${u.user_id}</div>
+                        <div class="text-slate-600 font-semibold text-[11px]">${u.nama}</div>
+                        <div class="mt-1">
+                            <button type="button" onclick="buatTagihanBulanBerikutnya('${u.user_id}')" class="bg-blue-600 hover:bg-blue-700 text-white px-2 py-0.5 rounded text-[10px] font-bold transition cursor-pointer shadow-2xs">
+                                + Tagihan Bulan Depan
+                            </button>
+                        </div>
+                    </td>`;
+
+                bulanList.forEach(b => {
+                    let statusBulan = u.histori && u.histori[b] ? u.histori[b] : "Belum";
+                    let warnaBadge = statusBulan === "Lunas" ? "bg-emerald-100 text-emerald-800" :
+                                     (statusBulan === "Wait" || statusBulan === "Menunggu" ? "bg-amber-100 text-amber-800" : "bg-slate-100 text-slate-500");
+
+                    rowHtml += `<td class="p-2 border border-slate-200 text-center"><span class="px-1.5 py-0.5 rounded text-[10px] font-bold ${warnaBadge} inline-block">${statusBulan}</span></td>`;
+                });
+
+                rowHtml += `</tr>`;
+                tbody.innerHTML += rowHtml;
+            });
+        }
+
+        // ==========================================
+        // PENGELUARAN (KAS)
+        // ==========================================
+        function simpanPengeluaran(e) {
+            e.preventDefault();
+            const editIdx = Number(document.getElementById('editIndexPengeluaran').value);
+            const nomor = document.getElementById('expNomor').value.trim();
+            const nominal = Number(document.getElementById('expNominal').value);
+            const keterangan = document.getElementById('expKeterangan').value.trim();
+
+            if (editIdx >= 0 && editIdx < globalExpenses.length) {
+                globalExpenses[editIdx] = { nomor, nominal, keterangan };
+                alert("✓ Catatan pengeluaran berhasil diperbarui!");
+            } else {
+                globalExpenses.push({ nomor, nominal, keterangan });
+                alert("✓ Catatan pengeluaran berhasil ditambahkan!");
+            }
+
+            simpanExpensesKeStorage();
+            resetFormPengeluaran();
+            renderDashboardData();
+        }
+
+        function editPengeluaran(idx) {
+            const exp = globalExpenses[idx];
+            if (!exp) return;
+            document.getElementById('editIndexPengeluaran').value = idx;
+            document.getElementById('expNomor').value = exp.nomor;
+            document.getElementById('expNominal').value = exp.nominal;
+            document.getElementById('expKeterangan').value = exp.keterangan;
+
+            document.getElementById('formTitlePengeluaran').innerText = `✏️ Edit Pengeluaran (${exp.nomor})`;
+            document.getElementById('btnSimpanPengeluaran').innerText = "✓ Perbarui Pengeluaran";
+            document.getElementById('btnBatalEditPengeluaran').classList.remove('hidden');
+        }
+
+        function resetFormPengeluaran() {
+            document.getElementById('editIndexPengeluaran').value = -1;
+            document.getElementById('expNomor').value = "";
+            document.getElementById('expNominal').value = "";
+            document.getElementById('expKeterangan').value = "";
+            document.getElementById('formTitlePengeluaran').innerText = "➕ Tambah Catatan Pengeluaran";
+            document.getElementById('btnSimpanPengeluaran').innerText = "✓ Simpan Pengeluaran ke LocalStorage";
+            document.getElementById('btnBatalEditPengeluaran').classList.add('hidden');
+        }
+
+        function hapusPengeluaran(idx) {
+            if (confirm("Apakah Anda yakin ingin menghapus catatan pengeluaran ini?")) {
+                globalExpenses.splice(idx, 1);
+                simpanExpensesKeStorage();
+                renderDashboardData();
+            }
+        }
+
+        function renderDaftarPengeluaran() {
+            const tbody = document.getElementById('tabelPengeluaranBody');
+            tbody.innerHTML = "";
+
+            if (globalExpenses.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="py-4 text-center text-slate-400">Belum ada catatan pengeluaran kas.</td></tr>`;
+                return;
+            }
+
+            globalExpenses.forEach((exp, idx) => {
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="py-2.5 font-bold font-mono text-slate-700">${exp.nomor}</td>
+                        <td class="py-2.5 font-bold text-rose-600">Rp${Number(exp.nominal).toLocaleString('id-ID')}</td>
+                        <td class="py-2.5 text-slate-700">${exp.keterangan}</td>
+                        <td class="py-2.5 text-center space-x-1">
+                            <button type="button" onclick="editPengeluaran(${idx})" class="text-blue-600 hover:text-blue-800 font-bold px-2 py-1">Edit</button>
+                            <button type="button" onclick="hapusPengeluaran(${idx})" class="text-rose-500 hover:text-rose-700 font-bold px-2 py-1">Hapus</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        // ==========================================
+        // DASHBOARD & STATISTIK
+        // ==========================================
+        function renderDashboardData() {
+            const users = globalUsers;
+            const total = users.length;
+            const lunasCount = users.filter(u => u.status === 'Lunas').length;
+            const belumLunasCount = users.filter(u => u.status === 'Belum Lunas').length;
+            const menungguCount = users.filter(u => u.status === 'Menunggu Verifikasi').length;
+
+            const jumlahKotor = users.reduce((acc, cur) => acc + Number(cur.nominal || 0), 0);
+            const pendapatanTotal = users.filter(u => u.status === 'Lunas').reduce((acc, cur) => acc + Number(cur.nominal), 0);
+            const jumlahPengeluaran = globalExpenses.reduce((acc, cur) => acc + Number(cur.nominal || 0), 0);
+            const jumlahBersih = jumlahKotor - jumlahPengeluaran;
+
+            const tabPelBtn = document.getElementById('tabBtnPelanggan');
+            if (tabPelBtn) tabPelBtn.innerText = `👥 Kelola Anggota (${total})`;
+
+            document.getElementById('statPendapatan').innerText = "Rp" + pendapatanTotal.toLocaleString('id-ID');
+            let persentaseLunas = total > 0 ? Math.round((lunasCount / total) * 100) : 0;
+            document.getElementById('statInfoRasio').innerText = `${lunasCount} dari ${total} anggota sudah lunas (${persentaseLunas}%)`;
+
+            document.getElementById('statTotal').innerText = total;
+            document.getElementById('statLunas').innerText = lunasCount;
+            document.getElementById('statBelumLunas').innerText = belumLunasCount;
+            document.getElementById('statMenunggu').innerText = menungguCount;
+
+            document.getElementById('boxJumlahKotor').innerText = "Rp " + jumlahKotor.toLocaleString('id-ID');
+            document.getElementById('boxJumlahPengeluaran').innerText = "Rp " + jumlahPengeluaran.toLocaleString('id-ID');
+            document.getElementById('boxJumlahBersih').innerText = "Rp " + jumlahBersih.toLocaleString('id-ID');
+
+            renderDaftarPelanggan();
+            renderTabelVerifikasi();
+            renderDaftarPengeluaran();
+            renderMatriksHistori();
+        }
+
+        // ==========================================
+        // STRUK RESMI
+        // ==========================================
+        function bukaModalStrukDariAktif() {
+            if (window.currentActiveUser) {
+                bukaModalStruk(window.currentActiveUser.user_id);
+            }
+        }
+
+        function bukaModalStruk(uid) {
+            const user = globalUsers.find(u => u.user_id.toUpperCase() === uid.toUpperCase());
+            if (!user) return;
+            activeReceiptUser = user;
+
+            const now = new Date();
+            const tglStr = String(now.getDate()).padStart(2, '0') + ' ' +
+                ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'][now.getMonth()] + ' ' +
+                now.getFullYear() + ', ' +
+                String(now.getHours()).padStart(2, '0') + ':' +
+                String(now.getMinutes()).padStart(2, '0') + ' WIB';
+
+            document.getElementById('strukNoTransaksi').innerText = `GPAI-${user.periode.toUpperCase()}-${user.user_id}`;
+            document.getElementById('strukWaktu').innerText = tglStr;
+            document.getElementById('strukUserId').innerText = user.user_id;
+            document.getElementById('strukNama').innerText = user.nama;
+            document.getElementById('strukJabatan').innerText = user.jabatan || 'Sertifikasi';
+            document.getElementById('strukPeriode').innerText = user.periode;
+            document.getElementById('strukNominal').innerText = "Rp" + Number(user.nominal).toLocaleString('id-ID');
+
+            document.getElementById('modalStruk').classList.remove('hidden');
+        }
+
+        function tutupModalStruk() {
+            document.getElementById('modalStruk').classList.add('hidden');
+        }
+
+        function bagikanStruk() {
+            if (!activeReceiptUser) return;
+            const text = `STRUK RESMI PEMBAYARAN IURAN GPAI TANJUNGSARI\n\nNo. Transaksi: GPAI-${activeReceiptUser.periode.toUpperCase()}-${activeReceiptUser.user_id}\nUser ID: ${activeReceiptUser.user_id}\nNama: ${activeReceiptUser.nama}\nJabatan: ${activeReceiptUser.jabatan || 'Sertifikasi'}\nPeriode: ${activeReceiptUser.periode}\nNominal: Rp${Number(activeReceiptUser.nominal).toLocaleString('id-ID')}\nStatus: LUNAS DIVERIFIKASI\n\nBukti sah transaksi digital GPAI Tanjungsari.`;
+
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Struk Resmi GPAI Tanjungsari',
+                    text: text
+                }).catch(() => {});
+            } else {
+                navigator.clipboard.writeText(text).then(() => {
+                    alert("✓ Detail struk resmi berhasil disalin ke clipboard!");
+                });
+            }
+        }
+
+        // ==========================================
+        // PENGATURAN KREDENSIAL & BACKUP
+        // ==========================================
+        function prosesUpdateAdmin(e) {
+            e.preventDefault();
+            const oldU = document.getElementById('updUserLama').value.trim();
+            const oldP = document.getElementById('updPassLama').value.trim();
+            const newU = document.getElementById('updUserBaru').value.trim();
+            const newP = document.getElementById('updPassBaru').value.trim();
+            const notif = document.getElementById('pesanAdminNotif');
+
+            if (oldU !== ADMIN_USER_CACHED || oldP !== ADMIN_PASS_CACHED) {
+                notif.innerText = "Username lama atau Password lama tidak cocok!";
+                notif.className = "p-3 bg-rose-50 border border-rose-200 text-rose-800 rounded-xl text-xs font-semibold mb-3";
+                notif.classList.remove('hidden');
+                return;
+            }
+
+            if (newU) ADMIN_USER_CACHED = newU;
+            if (newP) ADMIN_PASS_CACHED = newP;
+            simpanAdminKeStorage();
+
+            notif.innerText = "✓ Kredensial admin berhasil diperbarui dan disimpan di LocalStorage!";
+            notif.className = "p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-xs font-semibold mb-3";
+            notif.classList.remove('hidden');
+
+            document.getElementById('adminUser').value = ADMIN_USER_CACHED;
+            document.getElementById('adminPass').value = ADMIN_PASS_CACHED;
+        }
+
+        function exportDataJSON() {
+            const backup = {
+                exportedAt: new Date().toISOString(),
+                users: globalUsers,
+                expenses: globalExpenses
+            };
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backup, null, 2));
+            const dlAnchor = document.createElement('a');
+            dlAnchor.setAttribute("href", dataStr);
+            dlAnchor.setAttribute("download", `gpai_tanjungsari_backup_${Date.now()}.json`);
+            dlAnchor.click();
+        }
+
+        function resetKeDataAwal() {
+            if (confirm("Apakah Anda yakin ingin mereset seluruh data kembali ke data bawaan awal GPAI Tanjungsari?")) {
+                globalUsers = JSON.parse(JSON.stringify(DEFAULT_USERS));
+                globalExpenses = JSON.parse(JSON.stringify(DEFAULT_EXPENSES));
+                ADMIN_USER_CACHED = "admin";
+                ADMIN_PASS_CACHED = "password123";
+                simpanUsersKeStorage();
+                simpanExpensesKeStorage();
+                simpanAdminKeStorage();
+                alert("✓ Data berhasil direset ke setelan awal bawaan.");
+                renderDashboardData();
+            }
+        }
+
+        // Jalankan saat pertama dimuat
+        document.addEventListener('DOMContentLoaded', () => {
+            muatDataDariStorage();
+            renderDashboardData();
+        });
+    </script>
+</body>
+</html>

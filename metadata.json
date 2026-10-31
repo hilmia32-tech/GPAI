@@ -1,0 +1,6 @@
+{
+  "name": "GPAI Tanjungsari",
+  "description": "Portal Web Langsung Pembayaran Iuran GPAI Tanjungsari dengan penyimpanan data otomatis localStorage.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
